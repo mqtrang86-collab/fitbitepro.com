@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitBite Pro - Sức Khỏe & Dinh Dưỡng Vùng Cao</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js CDN -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="h-full bg-slate-50 text-slate-800 flex flex-col" x-data="fitBiteApp()">
+
+    <!-- HEADER NAVBAR (Full-width) -->
+    <header class="bg-emerald-700 text-white shadow-md sticky top-0 z-50">
+        <div class="w-full px-4 sm:px-6 lg:px-8 py-3.5 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white text-emerald-700 p-2 rounded-xl font-black text-xl shadow-inner">
+                    🥗
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">FitBite Pro</h1>
+                    <p class="text-xs text-emerald-200">Dinh dưỡng Eat Clean chuẩn nguyên liệu Sơn La</p>
+                </div>
+            </div>
+            <nav class="hidden md:flex space-x-1 lg:space-x-2">
+                <button @click="activeTab = 'dashboard'" :class="activeTab === 'dashboard' ? 'bg-emerald-800 text-white' : 'text-emerald-100 hover:bg-emerald-600'" class="px-4 py-2 rounded-lg font-medium text-sm transition">Tổng quan</button>
+                <button @click="activeTab = 'calculator'" :class="activeTab === 'calculator' ? 'bg-emerald-800 text-white' : 'text-emerald-100 hover:bg-emerald-600'" class="px-4 py-2 rounded-lg font-medium text-sm transition">Tính TDEE & Macro</button>
+                <button @click="activeTab = 'menu'" :class="activeTab === 'menu' ? 'bg-emerald-800 text-white' : 'text-emerald-100 hover:bg-emerald-600'" class="px-4 py-2 rounded-lg font-medium text-sm transition">Thực đơn 7 Ngày</button>
+                <button @click="activeTab = 'diary'" :class="activeTab === 'diary' ? 'bg-emerald-800 text-white' : 'text-emerald-100 hover:bg-emerald-600'" class="px-4 py-2 rounded-lg font-medium text-sm transition">Nhật ký Calo</button>
+                <button @click="activeTab = 'water'" :class="activeTab === 'water' ? 'bg-emerald-800 text-white' : 'text-emerald-100 hover:bg-emerald-600'" class="px-4 py-2 rounded-lg font-medium text-sm transition">Nước uống</button>
+                <button @click="activeTab = 'workout'" :class="activeTab === 'workout' ? 'bg-emerald-800 text-white' : 'text-emerald-100 hover:bg-emerald-600'" class="px-4 py-2 rounded-lg font-medium text-sm transition">Vận động</button>
+                <button @click="activeTab = 'weight'" :class="activeTab === 'weight' ? 'bg-emerald-800 text-white' : 'text-emerald-100 hover:bg-emerald-600'" class="px-4 py-2 rounded-lg font-medium text-sm transition">Cân nặng</button>
+            </nav>
+            <div class="flex items-center space-x-2">
+                <button @click="resetData()" class="text-xs bg-emerald-800 hover:bg-emerald-900 text-emerald-200 px-3 py-1.5 rounded-lg border border-emerald-600 transition">Đặt lại dữ liệu</button>
+            </div>
+        </div>
+        <!-- Mobile Navigation bar -->
+        <div class="md:hidden flex overflow-x-auto space-x-1 px-4 py-2 bg-emerald-800 border-t border-emerald-600 scrollbar-none">
+            <button @click="activeTab = 'dashboard'" :class="activeTab === 'dashboard' ? 'bg-emerald-900 text-white' : 'text-emerald-200'" class="px-3 py-1.5 rounded-lg text-xs whitespace-nowrap font-medium">Tổng quan</button>
+            <button @click="activeTab = 'calculator'" :class="activeTab === 'calculator' ? 'bg-emerald-900 text-white' : 'text-emerald-200'" class="px-3 py-1.5 rounded-lg text-xs whitespace-nowrap font-medium">TDEE</button>
+            <button @click="activeTab = 'menu'" :class="activeTab === 'menu' ? 'bg-emerald-900 text-white' : 'text-emerald-200'" class="px-3 py-1.5 rounded-lg text-xs whitespace-nowrap font-medium">Thực đơn</button>
+            <button @click="activeTab = 'diary'" :class="activeTab === 'diary' ? 'bg-emerald-900 text-white' : 'text-emerald-200'" class="px-3 py-1.5 rounded-lg text-xs whitespace-nowrap font-medium">Nhật ký</button>
+            <button @click="activeTab = 'water'" :class="activeTab === 'water' ? 'bg-emerald-900 text-white' : 'text-emerald-200'" class="px-3 py-1.5 rounded-lg text-xs whitespace-nowrap font-medium">Nước</button>
+            <button @click="activeTab = 'workout'" :class="activeTab === 'workout' ? 'bg-emerald-900 text-white' : 'text-emerald-200'" class="px-3 py-1.5 rounded-lg text-xs whitespace-nowrap font-medium">Vận động</button>
+            <button @click="activeTab = 'weight'" :class="activeTab === 'weight' ? 'bg-emerald-900 text-white' : 'text-emerald-200'" class="px-3 py-1.5 rounded-lg text-xs whitespace-nowrap font-medium">Cân nặng</button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER (Full-width responsive layout) -->
+    <main class="flex-1 w-full px-4 sm:px-6 lg:px-8 py-6 max-w-7xl mx-auto">
+
+        <!-- 1. TAB: DASHBOARD -->
+        <div x-show="activeTab === 'dashboard'" x-cloak class="space-y-6">
+            <div class="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-6 text-white shadow-lg">
+                <h2 class="text-2xl font-bold mb-2">Xin chào! 👋</h2>
+                <p class="text-emerald-100 max-w-3xl text-sm sm:text-base leading-relaxed">
+                    Chào mừng bạn đến với FitBite Pro - Trợ lý dinh dưỡng và thể chất thông minh. Sử dụng nguồn nông sản tươi sạch vùng cao Sơn La (khoai lang, su su, cải mèo, ức gà bản địa) để đạt mục tiêu vóc dáng của bạn!
+                </p>
+            </div>
+
+            <!-- Summary Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Calorie Card -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Calo trong ngày</span>
+                            <span class="p-2 bg-emerald-50 text-emerald-600 rounded-xl text-sm">🔥</span>
+                        </div>
+                        <div class="flex items-baseline space-x-2">
+                            <span class="text-3xl font-extrabold text-slate-800" x-text="totalCaloriesConsumed"></span>
+                            <span class="text-sm text-slate-500">/ <span x-text="targetCalories"></span> kcal</span>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="w-full bg-slate-100 rounded-full h-2">
+                            <div class="bg-emerald-600 h-2 rounded-full transition-all duration-500" :style="`width: ${Math.min(100, (totalCaloriesConsumed / targetCalories) * 100)}%`"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Water Card -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Nước uống</span>
+                            <span class="p-2 bg-blue-50 text-blue-600 rounded-xl text-sm">💧</span>
+                        </div>
+                        <div class="flex items-baseline space-x-2">
+                            <span class="text-3xl font-extrabold text-slate-800" x-text="(waterGlasses * 0.25).toFixed(2)"></span>
+                            <span class="text-sm text-slate-500">/ <span x-text="targetWaterLiters"></span> Lít (<span x-text="waterGlasses"></span> cốc)</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex space-x-2">
+                        <button @click="addWater(-1)" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-1 rounded-lg text-xs font-semibold transition">- 1 cốc</button>
+                        <button @click="addWater(1)" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-1 rounded-lg text-xs font-semibold transition">+ 1 cốc</button>
+                    </div>
+                </div>
+
+                <!-- Workout Card -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Đốt cháy calo</span>
+                            <span class="p-2 bg-amber-50 text-amber-600 rounded-xl text-sm">⚡</span>
+                        </div>
+                        <div class="flex items-baseline space-x-2">
+                            <span class="text-3xl font-extrabold text-slate-800" x-text="totalCaloriesBurned"></span>
+                            <span class="text-sm text-slate-500">kcal</span>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span class="text-xs text-slate-500" x-text="workouts.length + ' hoạt động đã ghi nhận hôm nay'"></span>
+                    </div>
+                </div>
+
+                <!-- Weight Card -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Cân nặng hiện tại</span>
+                            <span class="p-2 bg-purple-50 text-purple-600 rounded-xl text-sm">⚖️</span>
+                        </div>
+                        <div class="flex items-baseline space-x-2">
+                            <span class="text-3xl font-extrabold text-slate-800" x-text="currentWeight"></span>
+                            <span class="text-sm text-slate-500">kg</span>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span class="text-xs text-purple-600 font-medium cursor-pointer hover:underline" @click="activeTab = 'weight'">Cập nhật cân nặng &rarr;</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Access / Suggestions -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">Gợi ý Eat Clean Sơn La hôm nay</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-100 flex items-start space-x-3">
+                            <span class="text-2xl">🍠</span>
+                            <div>
+                                <h4 class="font-semibold text-emerald-900 text-sm">Khoai lang luộc + Trứng</h4>
+                                <p class="text-xs text-emerald-700 mt-1">Nguồn tinh bột hấp thu chậm tuyệt vời từ cao nguyên, kết hợp trứng gà giàu protein.</p>
+                                <span class="inline-block mt-2 text-xs bg-emerald-600 text-white px-2 py-0.5 rounded font-medium">~250 kcal</span>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-100 flex items-start space-x-3">
+                            <span class="text-2xl">🥗</span>
+                            <div>
+                                <h4 class="font-semibold text-emerald-900 text-sm">Cải mèo xào ức gà bản</h4>
+                                <p class="text-xs text-emerald-700 mt-1">Rau cải mèo giòn ngọt đặc sản Sơn La xào cùng ức gà săn chắc, ít dầu mỡ.</p>
+                                <span class="inline-block mt-2 text-xs bg-emerald-600 text-white px-2 py-0.5 rounded font-medium">~320 kcal</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-2">Mục tiêu dinh dưỡng</h3>
+                        <p class="text-xs text-slate-500 mb-4">Tính toán chính xác nhu cầu năng lượng cá nhân dựa trên chỉ số TDEE.</p>
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-sm"><span class="text-slate-600">Protein (Đạm):</span><span class="font-semibold text-slate-800" x-text="macroProtein + 'g'"></span></div>
+                            <div class="flex justify-between text-sm"><span class="text-slate-600">Carb (Tinh bột):</span><span class="font-semibold text-slate-800" x-text="macroCarbs + 'g'"></span></div>
+                            <div class="flex justify-between text-sm"><span class="text-slate-600">Fat (Chất béo):</span><span class="font-semibold text-slate-800" x-text="macroFat + 'g'"></span></div>
+                        </div>
+                    </div>
+                    <button @click="activeTab = 'calculator'" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl text-sm font-semibold transition">Tính lại TDEE</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. TAB: CALCULATOR TDEE & MACRO -->
+        <div x-show="activeTab === 'calculator'" x-cloak class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200 max-w-3xl mx-auto space-y-6">
+            <div>
+                <h2 class="text-xl font-bold text-slate-800">Công cụ tính TDEE & Macro chuẩn xác</h2>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">Xác định năng lượng tiêu thụ hàng ngày và tỉ lệ dinh dưỡng phù hợp với thể trạng của bạn.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Giới tính</label>
+                    <select x-model="calc.gender" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:border-emerald-600">
+                        <option value="male">Nam</option>
+                        <option value="female">Nữ</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Tuổi</label>
+                    <input type="number" x-model.number="calc.age" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:border-emerald-600" placeholder="Ví dụ: 20">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Cân nặng (kg)</label>
+                    <input type="number" step="0.1" x-model.number="calc.weight" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:border-emerald-600" placeholder="Ví dụ: 55">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Chiều cao (cm)</label>
+                    <input type="number" x-model.number="calc.height" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:border-emerald-600" placeholder="Ví dụ: 165">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Mức độ vận động</label>
+                <select x-model.number="calc.activity" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:border-emerald-600">
+                    <option value="1.2">Ít vận động (Nhân viên văn phòng, học sinh ít chơi thể thao)</option>
+                    <option value="1.375">Vận động nhẹ (Tập thể dục 1-3 buổi/tuần)</option>
+                    <option value="1.55">Vận động vừa (Tập thể dục 3-5 buổi/tuần)</option>
+                    <option value="1.725">Vận động nhiều (Tập thể dục 6-7 buổi/tuần)</option>
+                    <option value="1.9">Vận động rất nhiều (Vận động viên, lao động nặng)</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Mục tiêu</label>
+                <select x-model="calc.goal" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:border-emerald-600">
+                    <option value="lose">Giảm cân (Cắt giảm 20% calo)</option>
+                    <option value="maintain">Duy trì cân nặng</option>
+                    <option value="gain">Tăng cơ / Tăng cân (Thêm 15% calo)</option>
+                </select>
+            </div>
+
+            <button @click="calculateTDEE()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition shadow-sm">Tính toán ngay</button>
+
+            <!-- Results Section -->
+            <div x-show="calcResult.tdee > 0" x-cloak class="mt-6 p-6 bg-emerald-50 rounded-2xl border border-emerald-100 space-y-4">
+                <h3 class="text-lg font-bold text-emerald-900">Kết quả tính toán của bạn</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-white p-4 rounded-xl border border-emerald-200">
+                        <span class="text-xs text-slate-500 uppercase font-semibold">TDEE (Năng lượng tiêu thụ)</span>
+                        <div class="text-2xl font-extrabold text-emerald-700 mt-1"><span x-text="calcResult.tdee"></span> kcal</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-emerald-200">
+                        <span class="text-xs text-slate-500 uppercase font-semibold">Calo mục tiêu</span>
+                        <div class="text-2xl font-extrabold text-teal-700 mt-1"><span x-text="calcResult.targetCalories"></span> kcal</div>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-emerald-200 space-y-2">
+                    <span class="text-xs text-slate-500 uppercase font-semibold">Phân bổ Macro gợi ý</span>
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="bg-slate-50 p-2 rounded-lg">
+                            <div class="text-xs text-slate-500">Protein</div>
+                            <div class="font-bold text-slate-800" x-text="calcResult.protein + 'g'"></div>
+                        </div>
+                        <div class="bg-slate-50 p-2 rounded-lg">
+                            <div class="text-xs text-slate-500">Carbs</div>
+                            <div class="font-bold text-slate-800" x-text="calcResult.carbs + 'g'"></div>
+                        </div>
+                        <div class="bg-slate-50 p-2 rounded-lg">
+                            <div class="text-xs text-slate-500">Fat</div>
+                            <div class="font-bold text-slate-800" x-text="calcResult.fat + 'g'"></div>
+                        </div>
+                    </div>
+                </div>
+                <button @click="applyTDEEToProfile()" class="w-full bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold py-2.5 rounded-xl transition">Áp dụng mức calo này vào Nhật ký</button>
+            </div>
+        </div>
+
+        <!-- 3. TAB: THỰC ĐƠN 7 NGÀY EAT CLEAN SƠ LA -->
+        <div x-show="activeTab === 'menu'" x-cloak class="space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Thực đơn Eat Clean 7 Ngày (Chuẩn nguyên liệu Sơn La)</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1">Khoai lang Mộc Châu, su su tươi, cải mèo vùng cao, thịt lợn bản và cá suối giàu dinh dưỡng.</p>
+                </div>
+                <!-- Day selector tabs -->
+                <div class="flex overflow-x-auto space-x-1 w-full sm:w-auto pb-2 sm:pb-0">
+                    <template x-for="(day, idx) in mealPlans" :key="idx">
+                        <button @click="selectedMenuDay = idx" :class="selectedMenuDay === idx ? 'bg-emerald-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition" x-text="day.title"></button>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Meal Plan Details for Selected Day -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <template x-for="(meal, mIdx) in mealPlans[selectedMenuDay].meals" :key="mIdx">
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg" x-text="meal.type"></span>
+                                <span class="text-xs font-bold text-slate-500" x-text="meal.calories + ' kcal'"></span>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800" x-text="meal.name"></h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-relaxed" x-text="meal.desc"></p>
+                        </div>
+
+                        <div class="space-y-3 pt-4 border-t border-slate-100">
+                            <div>
+                                <span class="text-xs font-semibold text-slate-700">Nguyên liệu Sơn La:</span>
+                                <p class="text-xs text-slate-600 mt-0.5" x-text="meal.ingredients"></p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button @click="openRecipeModal(meal)" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded-xl text-xs font-semibold transition">Xem công thức</button>
+                                <button @click="addMealToDiary(meal)" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl text-xs font-semibold transition">+ Thêm nhật ký</button>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- 4. TAB: NHẬT KÝ CALO -->
+        <div x-show="activeTab === 'diary'" x-cloak class="space-y-6">
+            <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">Nhật ký Calo hàng ngày</h2>
+                        <p class="text-xs sm:text-sm text-slate-500 mt-1">Thêm các món ăn thủ công hoặc từ thực đơn để kiểm soát năng lượng nạp vào.</p>
+                    </div>
+                    <div class="bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 text-right">
+                        <span class="text-xs text-emerald-700 font-medium block">Tổng calo đã nạp</span>
+                        <span class="text-xl font-extrabold text-emerald-800" x-text="totalCaloriesConsumed + ' / ' + targetCalories + ' kcal'"></span>
+                    </div>
+                </div>
+
+                <!-- Add Custom Food Form -->
+                <form @submit.prevent="addCustomFood()" class="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Tên món ăn / Thực phẩm</label>
+                        <input type="text" x-model="newFood.name" required placeholder="Ví dụ: Khoai lang luộc (200g)" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm focus:outline-none focus:border-emerald-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Calo (kcal)</label>
+                        <input type="number" x-model.number="newFood.calories" required placeholder="Ví dụ: 180" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm focus:outline-none focus:border-emerald-600">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-lg text-sm transition">Thêm món</button>
+                    </div>
+                </form>
+
+                <!-- Consumed Food List -->
+                <div class="space-y-3">
+                    <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Danh sách món đã ăn hôm nay</h3>
+                    <template x-if="diaryMeals.length === 0">
+                        <p class="text-sm text-slate-400 italic py-4 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">Chưa có món ăn nào trong nhật ký. Hãy thêm món hoặc chọn từ thực đơn 7 ngày!</p>
+                    </template>
+                    <div class="space-y-2">
+                        <template x-for="(item, index) in diaryMeals" :key="index">
+                            <div class="flex justify-between items-center p-3.5 bg-slate-50 rounded-xl border border-slate-200 hover:border-emerald-200 transition">
+                                <div>
+                                    <h4 class="font-semibold text-slate-800 text-sm" x-text="item.name"></h4>
+                                    <span class="text-xs text-slate-500" x-text="item.time"></span>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <span class="text-sm font-bold text-emerald-600" x-text="'+' + item.calories + ' kcal'"></span>
+                                    <button @click="removeDiaryMeal(index)" class="text-slate-400 hover:text-red-500 p-1 transition">&times;</button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. TAB: THEO DÕI NƯỚC UỐNG -->
+        <div x-show="activeTab === 'water'" x-cloak class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200 max-w-2xl mx-auto space-y-6 text-center">
+            <div>
+                <h2 class="text-xl font-bold text-slate-800">Theo dõi lượng nước uống</h2>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">Mỗi cốc tiêu chuẩn tương đương 250ml. Giữ cơ thể đủ nước giúp tăng cường trao đổi chất.</p>
+            </div>
+
+            <div class="py-8">
+                <div class="inline-flex items-center justify-center w-36 h-36 rounded-full bg-blue-50 border-4 border-blue-500 shadow-inner">
+                    <div class="text-center">
+                        <span class="text-3xl font-black text-blue-600" x-text="(waterGlasses * 0.25).toFixed(2)"></span>
+                        <span class="text-xs text-blue-400 block font-semibold uppercase mt-0.5">Lít nước</span>
+                    </div>
+                </div>
+                <div class="mt-4 text-sm font-medium text-slate-600">
+                    Đã uống <span class="font-bold text-blue-600" x-text="waterGlasses"></span> cốc / Mục tiêu <span class="font-bold text-slate-800" x-text="targetWaterGlasses"></span> cốc (<span x-text="targetWaterLiters"></span> L)
+                </div>
+            </div>
+
+            <div class="flex justify-center space-x-4">
+                <button @click="addWater(-1)" class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition">- Giảm 1 cốc</button>
+                <button @click="addWater(1)" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition shadow-sm">+ Thêm 1 cốc (250ml)</button>
+            </div>
+        </div>
+
+        <!-- 6. TAB: GHI NHẬN VẬN ĐỘNG -->
+        <div x-show="activeTab === 'workout'" x-cloak class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200 max-w-3xl mx-auto space-y-6">
+            <div>
+                <h2 class="text-xl font-bold text-slate-800">Ghi nhận vận động đốt cháy calo</h2>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">Đăng ký các bài tập đi bộ, chạy bộ quanh thành phố Sơn La hoặc tập luyện tại nhà.</p>
+            </div>
+
+            <form @submit.prevent="addWorkout()" class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Loại hoạt động</label>
+                    <input type="text" x-model="newWorkout.name" required placeholder="Ví dụ: Đi bộ quanh quảng trường Tây Bắc" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm focus:outline-none focus:border-emerald-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Thời gian (phút)</label>
+                    <input type="number" x-model.number="newWorkout.duration" required placeholder="Ví dụ: 30" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm focus:outline-none focus:border-emerald-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Calo đốt cháy (kcal)</label>
+                    <input type="number" x-model.number="newWorkout.calories" required placeholder="Ví dụ: 150" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm focus:outline-none focus:border-emerald-600">
+                </div>
+                <div class="sm:col-span-3 flex justify-end">
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-2 rounded-lg text-sm transition">Thêm hoạt động</button>
+                </div>
+            </form>
+
+            <div class="space-y-3">
+                <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Nhật ký vận động hôm nay</h3>
+                <template x-if="workouts.length === 0">
+                    <p class="text-sm text-slate-400 italic py-4 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">Chưa ghi nhận bài tập nào.</p>
+                </template>
+                <div class="space-y-2">
+                    <template x-for="(w, idx) in workouts" :key="idx">
+                        <div class="flex justify-between items-center p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                            <div>
+                                <h4 class="font-semibold text-slate-800 text-sm" x-text="w.name"></h4>
+                                <span class="text-xs text-slate-500" x-text="w.duration + ' phút'"></span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-sm font-bold text-amber-600" x-text="'-' + w.calories + ' kcal'"></span>
+                                <button @click="removeWorkout(idx)" class="text-slate-400 hover:text-red-500 p-1 transition">&times;</button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. TAB: NHẬT KÝ CÂN NẶNG -->
+        <div x-show="activeTab === 'weight'" x-cloak class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200 max-w-2xl mx-auto space-y-6">
+            <div>
+                <h2 class="text-xl font-bold text-slate-800">Nhật ký theo dõi cân nặng</h2>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">Ghi nhận sự thay đổi trọng lượng cơ thể đều đặn mỗi tuần.</p>
+            </div>
+
+            <form @submit.prevent="addWeightLog()" class="flex space-x-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div class="flex-1">
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Cân nặng (kg)</label>
+                    <input type="number" step="0.1" x-model.number="newWeightInput" required placeholder="Ví dụ: 55.5" class="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-emerald-600">
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-2.5 rounded-lg text-sm transition h-[42px]">Cập nhật</button>
+                </div>
+            </form>
+
+            <div class="space-y-3">
+                <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Lịch sử cân nặng</h3>
+                <div class="space-y-2">
+                    <template x-for="(log, idx) in weightLogs" :key="idx">
+                        <div class="flex justify-between items-center p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                            <span class="text-xs font-semibold text-slate-600" x-text="log.date"></span>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-sm font-bold text-purple-700" x-text="log.weight + ' kg'"></span>
+                                <button @click="removeWeightLog(idx)" class="text-slate-400 hover:text-red-500 p-1 transition">&times;</button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- RECIPE MODAL -->
+    <div x-show="showRecipeModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+        <div @click.away="showRecipeModal = false" class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded" x-text="activeRecipe.type"></span>
+                    <h3 class="text-xl font-bold text-slate-800 mt-1" x-text="activeRecipe.name"></h3>
+                </div>
+                <button @click="showRecipeModal = false" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+
+            <div class="space-y-3 text-sm">
+                <div>
+                    <h4 class="font-semibold text-slate-700 text-xs uppercase">Nguyên liệu Sơn La chuẩn:</h4>
+                    <p class="text-slate-600 mt-1" x-text="activeRecipe.ingredients"></p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-slate-700 text-xs uppercase">Cách chế biến nhanh:</h4>
+                    <p class="text-slate-600 mt-1 leading-relaxed" x-text="activeRecipe.instructions"></p>
+                </div>
+                <div class="flex justify-between items-center pt-2 border-t border-slate-100 text-xs text-slate-500">
+                    <span>Năng lượng: <strong class="text-slate-800" x-text="activeRecipe.calories + ' kcal'"></strong></span>
+                </div>
+            </div>
+
+            <div class="flex space-x-3 pt-2">
+                <button @click="showRecipeModal = false" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-semibold transition">Đóng</button>
+                <button @click="addMealToDiary(activeRecipe); showRecipeModal = false;" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-xs font-semibold transition">Thêm vào nhật ký</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 mt-auto py-4 text-center text-xs text-slate-500">
+        <p>FitBite Pro &bull; Đồng hành cùng lối sống lành mạnh và dinh dưỡng thông minh tại Sơn La.</p>
+    </footer>
+
+    <!-- SCRIPT LOGIC -->
+    <script>
+        function fitBiteApp() {
+            return {
+                activeTab: 'dashboard',
+                targetCalories: 2000,
+                currentWeight: 55.0,
+                waterGlasses: 5,
+                targetWaterGlasses: 8,
+                targetWaterLiters: 2.0,
+
+                macroProtein: 120,
+                macroCarbs: 200,
+                macroFat: 60,
+
+                calc: {
+                    gender: 'female',
+                    age: 20,
+                    weight: 55,
+                    height: 160,
+                    activity: 1.2,
+                    goal: 'maintain'
+                },
+
+                calcResult: {
+                    tdee: 0,
+                    targetCalories: 0,
+                    protein: 0,
+                    carbs: 0,
+                    fat: 0
+                },
+
+                newFood: { name: '', calories: '' },
+                diaryMeals: [
+                    { name: 'Khoai lang luộc Mộc Châu (200g)', calories: 170, time: '08:00' },
+                    { name: 'Ức gà áp chảo + Cải mèo xào', calories: 350, time: '12:30' }
+                ],
+
+                newWorkout: { name: '', duration: '', calories: '' },
+                workouts: [
+                    { name: 'Đi bộ quanh quảng trường Tây Bắc', duration: 30, calories: 140 }
+                ],
+
+                newWeightInput: 55.0,
+                weightLogs: [
+                    { date: '25/09/2026', weight: 55.2 },
+                    { date: '28/09/2026', weight: 55.0 }
+                ],
+
+                selectedMenuDay: 0,
+                mealPlans: [
+                    {
+                        title: 'Thứ Hai',
+                        meals: [
+                            { type: 'Bữa sáng', name: 'Khoai lang Mộc Châu luộc + 2 Trứng', calories: 280, desc: 'Khoai lang ngọt bùi dẻo quánh giàu chất xơ, kết hợp trứng gà ta luộc giàu đạm sạch.', ingredients: '2 củ khoai lang nhỏ (150g), 2 quả trứng gà ta.', instructions: 'Rửa sạch khoai lang, luộc chín mềm trong 20 phút. Luộc chín trứng gà trong 8 phút. Thưởng thức kèm chút muối tiêu.' },
+                            { type: 'Bữa trưa', name: 'Ức gà xào sả ớt + Su su luộc', calories: 420, desc: 'Ức gà thái mỏng xào thơm mùi sả ớt tươi, ăn kèm đĩa su su luộc thanh mát đặc sản.', ingredients: '150g ức gà, 1 quả su su Sơn La, sả, ớt, nước mắm ngon.', instructions: 'Ức gà thái miếng ướp gia vị rồi xào nhanh tay với sả ớt đến khi săn lại. Su su gọt vỏ, luộc chín tới chấm muối vừng.' },
+                            { type: 'Bữa tối', name: 'Canh rau ngót thịt băm + Đậu hũ sốt cà', calories: 350, desc: 'Canh rau ngót ngọt mát và đậu phụ sốt cà chua ít dầu mỡ.', ingredients: '1 mớ rau ngót, 50g thịt băm, 2 bìa đậu hũ, 2 quả cà chua.', instructions: 'Thịt băm xào sơ rồi nấu canh rau ngót. Đậu hũ cắt miếng rán sơ rồi sốt với cà chua nhuyễn đến khi sánh lại.' }
+                        ]
+                    },
+                    {
+                        title: 'Thứ Ba',
+                        meals: [
+                            { type: 'Bữa sáng', name: 'Bánh mì nguyên cám kẹp trứng ốp la', calories: 310, desc: 'Nhanh gọn, đầy đủ năng lượng khởi đầu ngày học tập hiệu quả.', ingredients: '2 lát bánh mì nguyên cám, 1 quả trứng ốp la ít dầu, dưa chuột.', instructions: 'Áp chảo trứng với chảo chống dính không dầu mỡ hoặc chút xíu dầu ô liu. Kẹp vào bánh mì cùng dưa chuột.' },
+                            { type: 'Bữa trưa', name: 'Thịt lợn bản luộc + Rau cải mèo xào tỏi', calories: 450, desc: 'Thịt lợn bản săn chắc ngọt thịt chấm mắm tỏi kết hợp cải mèo giòn ngọt.', ingredients: '150g thịt lợn bản (nạc vai), 1 đĩa rau cải mèo, tỏi.', instructions: 'Thịt lợn luộc chín tới thái mỏng. Rau cải mèo rửa sạch, xào nhanh tay với tỏi phi thơm.' },
+                            { type: 'Bữa tối', name: 'Canh bí đỏ nấu xương sườn nhỏ', calories: 320, desc: 'Bí đỏ bùi thơm nấu sườn heo ninh nhừ ấm bụng.', ingredients: '200g bí đỏ, 100g sườn heo.', instructions: 'Sườn heo ninh mềm lấy nước ngọt, cho bí đỏ thái vuông vào nấu nhừ, nêm gia vị vừa ăn.' }
+                        ]
+                    },
+                    {
+                        title: 'Thứ Tư',
+                        meals: [
+                            { type: 'Bữa sáng', name: 'Cháo yến mạch thịt bằm', calories: 260, desc: 'Món cháo ấm nóng dễ tiêu hóa buổi sáng.', ingredients: '40g yến mạch cán vỡ, 50g thịt lợn băm nhỏ, hành hoa.', instructions: 'Nấu chín yến mạch với nước sôi, xào sơ thịt băm rồi trộn đều, thêm hành hoa thái nhỏ.' },
+                            { type: 'Bữa trưa', name: 'Cá rô phi sốt cà chua + Rau muống luộc', calories: 390, desc: 'Cá suối/cá rô phi giàu omega-3 kết hợp rau muống luộc chấm sấu/chanh.', ingredients: '1 con cá rô phi phi lê hoặc cắt khúc, cà chua, rau muống.', instructions: 'Cá rán vàng các mặt rồi rim sốt cà chua đậm đà. Rau muống luộc lấy nước làm canh chanh.' },
+                            { type: 'Bữa tối', name: 'Thịt thăn rim tiêu mặn ngọt + Củ cải luộc', calories: 340, desc: 'Thịt thăn ít mỡ rim tiêu thơm phức ăn kèm củ cải luộc thanh ngọt.', ingredients: '120g thịt thăn lợn, 1 củ cải trắng.', instructions: 'Thịt thăn thái mỏng rim lửa nhỏ với chút nước mắm, đường, tiêu. Củ cải luộc chấm nước mắm tỏi ớt.' }
+                        ]
+                    },
+                    {
+                        title: 'Thứ Năm',
+                        meals: [
+                            { type: 'Bữa sáng', name: 'Khoai tây luộc nghiền + Trứng luộc', calories: 290, desc: 'Tinh bột sạch hỗ trợ tiêu hóa tốt.', ingredients: '2 củ khoai tây vừa, 1 quả trứng.', instructions: 'Khoai tây luộc chín mềm nghiền nhuyễn, ăn kèm trứng luộc.' },
+                            { type: 'Bữa trưa', name: 'Thịt bò xào hành tây ớt chuông', calories: 410, desc: 'Thịt bò tươi ngon vùng cao xào cùng ớt chuông giàu vitamin C.', ingredients: '130g thịt bò thăn, 1 củ hành tây, 1 quả ớt chuông.', instructions: 'Thịt bò thái mỏng ướp tỏi tỏi tiêu, xào nhanh tay với hành tây và ớt chuông trên lửa lớn.' },
+                            { type: 'Bữa tối', name: 'Canh rau dền tôm tươi + Đậu phụ luộc', calories: 310, desc: 'Thanh đạm, ít calo cho buổi tối nhẹ nhàng.', ingredients: '1 mớ rau dền, 50g tôm tươi bóc vỏ, 2 bìa đậu phụ.', instructions: 'Tôm băm nhỏ xào thơm rồi nấu nước canh rau dền. Đậu phụ luộc nóng.' }
+                        ]
+                    },
+                    {
+                        title: 'Thứ Sáu',
+                        meals: [
+                            { type: 'Bữa sáng', name: 'Bánh mì đen kẹp ức gà xé phay', calories: 280, desc: 'Bữa sáng chuẩn Eat Clean năng lượng bền vững.', ingredients: '2 lát bánh mì đen, 50g ức gà luộc xé phay, xà lách.', instructions: 'Kẹp ức gà xé phay và xà lách tươi vào bánh mì đen.' },
+                            { type: 'Bữa trưa', name: 'Gà ta luộc thái miếng + Su hào xào nấm', calories: 430, desc: 'Thịt gà ta chắc ngọt chấm muối ớt chanh.', ingredients: '150g thịt gà ta, 1 củ su hào, nấm hương.', instructions: 'Gà ta luộc chín tới chặt miếng vừa ăn. Su hào thái con chì xào nhanh cùng nấm hương.' },
+                            { type: 'Bữa tối', name: 'Thịt băm viên hấp sả mộc nhĩ', calories: 330, desc: 'Hấp chín mềm không dầu mỡ, thơm mùi sả mộc nhĩ.', ingredients: '130g thịt lợn băm, mộc nhĩ, sả.', instructions: 'Trộn thịt băm với mộc nhĩ thái nhỏ, nêm gia vị, bọc quanh cây sả rồi đem hấp chín trong 15 phút.' }
+                        ]
+                    },
+                    {
+                        title: 'Thứ Bảy',
+                        meals: [
+                            { type: 'Bữa sáng', name: 'Bánh mì trứng ốp la + Sữa tươi không đường', calories: 320, desc: 'Thực đơn cuối tuần nhanh gọn quen thuộc.', ingredients: '1 ổ bánh mì nhỏ, 1 quả trứng ốp, 1 hộp sữa tươi không đường.', instructions: 'Ăn kèm trứng ốp và thưởng thức ly sữa tươi thanh mát.' },
+                            { type: 'Bữa trưa', name: 'Thịt ba chỉ luộc (ít mỡ) + Dưa chuột xà lách', calories: 440, desc: 'Thịt luộc cuốn rau sống chấm nước mắm chua ngọt.', ingredients: '130g thịt ba chỉ chọn nạc, rau xà lách, dưa chuột.', instructions: 'Thịt luộc chín thái mỏng. Ăn kèm rau sống tươi sạch.' },
+                            { type: 'Bữa tối', name: 'Canh mọc nấu nấm hương + Su su xào thịt bò', calories: 360, desc: 'Bữa tối ấm cúng giàu dinh dưỡng cuối tuần.', ingredients: 'Mọc viên sẵn, nấm hương, su su, 80g thịt bò.', instructions: 'Nấu canh mọc nấm hương thơm ngon. Xào su su với thịt bò thái mỏng.' }
+                        ]
+                    },
+                    {
+                        title: 'Chủ Nhật',
+                        meals: [
+                            { type: 'Bữa sáng', name: 'Cháo gạo tẻ thịt bằm tía tô', calories: 270, desc: 'Ấm bụng, giải cảm và phục hồi năng lượng.', ingredients: 'Gạo tẻ, 50g thịt băm, lá tía tô thái nhỏ.', instructions: 'Nấu nhuyễn cháo gạo tẻ với thịt bằm, rắc nhiều lá tía tô thái nhỏ lên trên.' },
+                            { type: 'Bữa trưa', name: 'Canh gà nấu lá giang + Thịt lợn rang cháy cạnh', calories: 460, desc: 'Hương vị chua thanh kích thích vị giác.', ingredients: 'Thịt gà, lá giang, 120g thịt lợn ba chỉ/nạc vai rang.', instructions: 'Gà nấu canh lá giang vị chua thanh. Thịt lợn rang cháy cạnh xém cạnh thơm nức.' },
+                            { type: 'Bữa tối', name: 'Đậu phụ nhồi thịt sốt cà chua', calories: 350, desc: 'Món ăn quen thuộc giàu protein và dinh dưỡng.', ingredients: '3 bìa đậu phụ nhỏ, 100g thịt băm, cà chua.', instructions: 'Đậu phụ rạch giữa nhồi thịt băm rồi rán vàng các mặt, sau đó sốt cà chua sánh mịn.' }
+                        ]
+                    }
+                ],
+
+                showRecipeModal: false,
+                activeRecipe: { type: '', name: '', calories: 0, ingredients: '', instructions: '' },
+
+                get totalCaloriesConsumed() {
+                    return this.diaryMeals.reduce((sum, item) => sum + Number(item.calories), 0);
+                },
+
+                get totalCaloriesBurned() {
+                    return this.workouts.reduce((sum, item) => sum + Number(item.calories), 0);
+                },
+
+                init() {
+                    // Load saved data if available
+                    const savedDiary = localStorage.getItem('fitbite_diary');
+                    if (savedDiary) this.diaryMeals = JSON.parse(savedDiary);
+
+                    const savedWorkouts = localStorage.getItem('fitbite_workouts');
+                    if (savedWorkouts) this.workouts = JSON.parse(savedWorkouts);
+
+                    const savedWater = localStorage.getItem('fitbite_water');
+                    if (savedWater !== null) this.waterGlasses = Number(savedWater);
+
+                    const savedWeight = localStorage.getItem('fitbite_weights');
+                    if (savedWeight) this.weightLogs = JSON.parse(savedWeight);
+                    if (this.weightLogs.length > 0) {
+                        this.currentWeight = this.weightLogs[this.weightLogs.length - 1].weight;
+                    }
+                },
+
+                saveData() {
+                    localStorage.setItem('fitbite_diary', JSON.stringify(this.diaryMeals));
+                    localStorage.setItem('fitbite_workouts', JSON.stringify(this.workouts));
+                    localStorage.setItem('fitbite_water', this.waterGlasses);
+                    localStorage.setItem('fitbite_weights', JSON.stringify(this.weightLogs));
+                },
+
+                addWater(amount) {
+                    this.waterGlasses = Math.max(0, this.waterGlasses + amount);
+                    this.saveData();
+                },
+
+                addCustomFood() {
+                    if(!this.newFood.name || !this.newFood.calories) return;
+                    const now = new Date();
+                    const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+                    this.diaryMeals.push({
+                        name: this.newFood.name,
+                        calories: Number(this.newFood.calories),
+                        time: timeStr
+                    });
+                    this.newFood.name = '';
+                    this.newFood.calories = '';
+                    this.saveData();
+                },
+
+                removeDiaryMeal(index) {
+                    this.diaryMeals.splice(index, 1);
+                    this.saveData();
+                },
+
+                addMealToDiary(meal) {
+                    const now = new Date();
+                    const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+                    this.diaryMeals.push({
+                        name: meal.name,
+                        calories: meal.calories,
+                        time: timeStr
+                    });
+                    this.saveData();
+                    alert('Đã thêm món "' + meal.name + '" vào nhật ký calo!');
+                },
+
+                openRecipeModal(meal) {
+                    this.activeRecipe = meal;
+                    this.showRecipeModal = true;
+                },
+
+                addWorkout() {
+                    if(!this.newWorkout.name || !this.newWorkout.duration || !this.newWorkout.calories) return;
+                    this.workouts.push({
+                        name: this.newWorkout.name,
+                        duration: Number(this.newWorkout.duration),
+                        calories: Number(this.newWorkout.calories)
+                    });
+                    this.newWorkout.name = '';
+                    this.newWorkout.duration = '';
+                    this.newWorkout.calories = '';
+                    this.saveData();
+                },
+
+                removeWorkout(idx) {
+                    this.workouts.splice(idx, 1);
+                    this.saveData();
+                },
+
+                addWeightLog() {
+                    if(!this.newWeightInput) return;
+                    const today = new Date();
+                    const dateStr = String(today.getDate()).padStart(2, '0') + '/' + String(today.getMonth() + 1).padStart(2, '0') + '/' + today.getFullYear();
+                    this.weightLogs.push({
+                        date: dateStr,
+                        weight: Number(this.newWeightInput)
+                    });
+                    this.currentWeight = Number(this.newWeightInput);
+                    this.saveData();
+                },
+
+                removeWeightLog(idx) {
+                    this.weightLogs.splice(idx, 1);
+                    if(this.weightLogs.length > 0) {
+                        this.currentWeight = this.weightLogs[this.weightLogs.length - 1].weight;
+                    }
+                    this.saveData();
+                },
+
+                calculateTDEE() {
+                    let bmr = 10 * this.calc.weight + 6.25 * this.calc.height - 5 * this.calc.age;
+                    bmr += (this.calc.gender === 'male' ? 5 : -161);
+
+                    let tdee = Math.round(bmr * this.calc.activity);
+                    let target = tdee;
+                    if(this.calc.goal === 'lose') target = Math.round(tdee * 0.8);
+                    if(this.calc.goal === 'gain') target = Math.round(tdee * 1.15);
+
+                    // Macros: Protein 30%, Carbs 45%, Fat 25%
+                    let p = Math.round((target * 0.3) / 4);
+                    let c = Math.round((target * 0.45) / 4);
+                    let f = Math.round((target * 0.25) / 9);
+
+                    this.calcResult = {
+                        tdee: tdee,
+                        targetCalories: target,
+                        protein: p,
+                        carbs: c,
+                        fat: f
+                    };
+                },
+
+                applyTDEEToProfile() {
+                    this.targetCalories = this.calcResult.targetCalories;
+                    this.macroProtein = this.calcResult.protein;
+                    this.macroCarbs = this.calcResult.carbs;
+                    this.macroFat = this.calcResult.fat;
+                    this.activeTab = 'dashboard';
+                },
+
+                resetData() {
+                    localStorage.clear();
+                    location.reload();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
